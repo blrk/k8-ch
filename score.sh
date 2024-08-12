@@ -1,5 +1,7 @@
 # global var
 ctstatus=0
+gtstatus=0
+
 # investigate-create-transaction
 make_curl_request() {
     response=$(curl -i -L 'http://localhost:8080/concerto/api/transaction/create' \
@@ -15,21 +17,21 @@ make_curl_request() {
     if [[ $response != 2* ]]; then
         #echo "SERVER IS NOT RESPONDING WITH 2xx"
         ctstatus=1
-        exit 0
     fi
 }
 
 # investigate-get-transaction
-
-make_curl_request() {
+make_get_request() {
     response=$(curl -i -L 'http://localhost:8080/concerto/api/transaction/info/6797eb48-f0cc-4679-8502-560acf09a163' \
     -H 'Accept: mapplication/json' 2>&1 | awk '/HTTP\/1.1/{print $2}')
 
     if [[ $response != 2* ]]; then
-        echo "SERVER IS NOT RESPONDING WITH 2xx"
-        exit 1
+        #echo "SERVER IS NOT RESPONDING WITH 2xx"
+        #exit 1
+        gtstatus=1
     fi
 }
+
 
 # Define the namespaces
 namespaces=("default")
@@ -89,20 +91,55 @@ dimage=$(kubectl get deployment concerto-deployment -o=jsonpath='{.spec.template
 dimpolicy=$(kubectl get deployment concerto-deployment -o=jsonpath='{.spec.template.spec.containers[0].imagePullPolicy}')
 dport=$(kubectl get deployment concerto-deployment -o=jsonpath='{.spec.template.spec.containers[0].ports[0].containerPort}')
 
-if [ "$dname" = "concerto-deployment" ] && [ "$dlabel" = "concerto" ] && [ "$dreplicas" = "2" ] && [ "$dimage" = "blrk/concerto:1.1.0" ] && [ "$dimpolicy" = "Always" ] && [ "$dport" = "8080" ]; then
+if [ "$dname" = "concerto-deployment" ] && [ "$dlabel" = "concerto" ] && [ "$dreplicas" = "2" ] && [ "$dimage" = "blrk/concerto:1.0.0" ] && [ "$dimpolicy" = "Always" ] && [ "$dport" = "8080" ]; then
     echo "concerto-deployment [PASS]"
 else
     echo "concerto-deployment [FAIL]"
 fi
 
 # score Health Check Endpoints
+lpurl=$(kubectl get deployment concerto-deployment -o=jsonpath='{.spec.template.spec.containers[0].livenessProbe.httpGet.path}')
+lpport=$(kubectl get deployment concerto-deployment -o=jsonpath='{.spec.template.spec.containers[0].livenessProbe.httpGet.port}')
+
+if [ "$lpurl" = "/concerto/health/liveness" ] && [ "$lpport" = "8080" ]; then
+    echo "concerto-deployment livenessProbe [PASS]"
+else
+    echo "concerto-deployment livenessProbe [FAIL]"
+fi
+
+rpurl=$(kubectl get deployment concerto-deployment -o=jsonpath='{.spec.template.spec.containers[0].readinessProbe.httpGet.path}')
+rpport=$(kubectl get deployment concerto-deployment -o=jsonpath='{.spec.template.spec.containers[0].readinessProbe.httpGet.port}')
+
+if [ "$rpurl" = "/concerto/health/readiness" ] && [ "$lpport" = "8080" ]; then
+    echo "concerto-deployment readinessProbe [PASS]"
+else
+    echo "concerto-deployment readinessProbe [FAIL]"
+fi
 
 # investigate-create-transaction call
 for ((i=1; i<=5000; i++)); do
     #echo "Making request $i..."
     make_curl_request
+    if [ "$ctstatus" -eq 1 ]; then
+      echo "concerto-deployment create transaction [FAIL]"
+      break
+    fi
 done
 
-echo "All requests successful"
+if [ "$ctstatus" -eq 0 ]; then
+  echo "concerto-deployment create transaction [PASS]"
+fi
 
 # investigate-get-transaction call
+for ((i=1; i<=5000; i++)); do
+    #echo "Making request $i..."
+    make_get_request
+    if [ "$gtstatus" -eq 1 ]; then
+      echo "concerto-deployment get transaction [FAIL]"
+      break
+    fi
+done
+
+if [ "$gtstatus" -eq 0 ]; then
+  echo "concerto-deployment get transaction [PASS]"
+fi
