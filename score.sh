@@ -1,0 +1,108 @@
+# global var
+ctstatus=0
+# investigate-create-transaction
+make_curl_request() {
+    response=$(curl -i -L 'http://localhost:8080/concerto/api/transaction/create' \
+    -H 'Content-Type: application/json' \
+    -H 'Accept: application/json' \
+    -d '{
+      "eventId": "dc368370-a09c-4fbe-89ab-09f27c6ec56d",
+      "eventClass": "GOLD",
+      "price": 99,
+      "userId": "bc0ebf72-ad8b-45cb-8991-ada961b4415d"
+    }' 2>&1 | awk '/HTTP\/1.1/{print $2}')
+
+    if [[ $response != 2* ]]; then
+        #echo "SERVER IS NOT RESPONDING WITH 2xx"
+        ctstatus=1
+        exit 0
+    fi
+}
+
+# investigate-get-transaction
+
+make_curl_request() {
+    response=$(curl -i -L 'http://localhost:8080/concerto/api/transaction/info/6797eb48-f0cc-4679-8502-560acf09a163' \
+    -H 'Accept: mapplication/json' 2>&1 | awk '/HTTP\/1.1/{print $2}')
+
+    if [[ $response != 2* ]]; then
+        echo "SERVER IS NOT RESPONDING WITH 2xx"
+        exit 1
+    fi
+}
+
+# Define the namespaces
+namespaces=("default")
+userappurl=("mtvlabk8a1-app.brainupgrade.in")
+
+status=$(kubectl get pods mywebserver -n "$ns" -o=jsonpath='{.status.phase}')
+image=$(kubectl get pod mywebserver -o=jsonpath='{.spec.containers[*].image}')
+
+if [ "$status" = 'Running' ] && [ "$image" = 'nginx:1.26.1' ]; then
+    echo "My webserver pod stats [PASS]"
+else
+    "My webserver pod stats [FAIL]"
+fi
+
+count=$(kubectl get deployments/invest-frontend -n "$ns" -o=jsonpath='{.spec.replicas}')
+avail=$(kubectl get deployments/invest-frontend -n "$ns" -o=jsonpath='{.status.availableReplicas}')
+
+if [ "$count" = "5" ] && [ "$avail" = "5" ]; then
+    echo "investment frontend deployment [PASS]"
+else
+    echo "investment frontend deployment [FAIL]"
+fi
+
+# Fetch the cluster IP and port of the service
+cluster_ip=$(kubectl get svc user-fox -o=jsonpath='{.spec.clusterIP}')
+service_port=$(kubectl get svc user-fox -o=jsonpath='{.spec.ports[0].port}')
+
+# Perform the curl request
+suserfox=$(curl -s http://$cluster_ip:$service_port)
+
+# Use echo and cut to extract the first word from the response
+res=$(echo "$suserfox" | cut -d " " -f 1)
+
+# Check if the first word is "Hello,"
+if [ "$res" = "Hello," ]; then
+    echo "user-fox svc [PASS]"
+else
+    echo "user-fox svc [FAIL]"
+fi
+
+ingress_port=$(kubectl get ingress ingress -o=jsonpath='{.spec.rules[*].http.paths[*].backend.service.port.number}')
+ingress_svc=$(kubectl get ingress ingress -o=jsonpath='{.spec.rules[*].http.paths[*].backend.service.name}')
+
+#check the svc and ingress mapping
+if [ "$ingress_port" = "$service_port" ] && [ "$ingress_svc" = "user-fox" ]; then
+    echo "user-fox ingress [PASS]"
+else
+    echo "user-fox ingress [FAIL]"
+fi
+
+
+# Check concerto-deployment
+dname=$(kubectl get deployment concerto-deployment -o=jsonpath='{.metadata.name}')
+dlabel=$(kubectl get deployment concerto-deployment -o=jsonpath='{.spec.selector.matchLabels.app}')
+dreplicas=$(kubectl get deployment concerto-deployment -o=jsonpath='{.spec.replicas}')
+dimage=$(kubectl get deployment concerto-deployment -o=jsonpath='{.spec.template.spec.containers[0].image}')
+dimpolicy=$(kubectl get deployment concerto-deployment -o=jsonpath='{.spec.template.spec.containers[0].imagePullPolicy}')
+dport=$(kubectl get deployment concerto-deployment -o=jsonpath='{.spec.template.spec.containers[0].ports[0].containerPort}')
+
+if [ "$dname" = "concerto-deployment" ] && [ "$dlabel" = "concerto" ] && [ "$dreplicas" = "2" ] && [ "$dimage" = "blrk/concerto:1.1.0" ] && [ "$dimpolicy" = "Always" ] && [ "$dport" = "8080" ]; then
+    echo "concerto-deployment [PASS]"
+else
+    echo "concerto-deployment [FAIL]"
+fi
+
+# score Health Check Endpoints
+
+# investigate-create-transaction call
+for ((i=1; i<=5000; i++)); do
+    #echo "Making request $i..."
+    make_curl_request
+done
+
+echo "All requests successful"
+
+# investigate-get-transaction call

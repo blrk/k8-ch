@@ -1,0 +1,51 @@
+Run & Test the Application
+Total Duration: 1 Hour 30 Minutes                                                              Total Points: [100]
+As a DevOps engineer at a bank, you are tasked with deploying, managing, and troubleshooting applications within a Kubernetes (K8s) environment. This comprehensive challenge is designed to assess your K8s expertise through a series of advanced technical tasks, focusing on issue resolution, application deployment, and performance testing.
+Challenge Structure
+This challenge is divided into two parts:
+Part 1: Diagnose and resolve issues in existing applications.
+Part 2: Deploy a new application, address operational issues, and conduct extensive performance testing.
+
+
+
+
+
+
+Challenge - Part 1                                                                                                       [30 points]
+•	In your namespace, the mywebserver pod refuses to start, causing disruptions. Diagnose the issue and implement a fix to get the pod up and running. 
+•	Ensure the "invest-frontend" Application Runs with 5 Pods
+•	Analyse and fix the issue causing User-fox service requests to the backend service to fail.
+•	Diagnose and rectify the problem leading to external clients receiving 503 errors when accessing the API endpoint. 
+Challenge - Part 2 
+The bank is organizing various employee events, and the development team has provided a Docker image (blrk/concerto:1.1.0) for the event registration application. This application is built with Java and runs on port 8080.
+Task 1: Deploy the Event Registration Application.                                              [20 points]                                                                               
+•	Create a Kubernetes deployment named concerto-deployment with 2 pod instances.
+•	Ensure the image pull policy is set to "Always".
+•	Apply the label app: concerto wherever required.
+Task 2: Investigate Application Breakdown Under Load.                             	   [20 Points] 
+•	Scenario: The operations team has reported that the application breaks down after several minutes of peak transaction load.
+•	Investigate and identify the specific API endpoint causing the breakdown.
+•	Use valid transaction data (eventId, eventClass, price, userId) 
+•	Note: use valid "eventId", "eventClass", "price", and "userId" as outlined in user-manual-1.txt
+•	Sample Task: Create a transaction:.
+
+
+
+
+•	Get a transaction information. 
+•	Sample
+
+
+ 
+Task 3: Implement Health Check Endpoints.     					   [10 points]     
+•	Based on the investigation, the engineering team has requested the addition of health check endpoints to the application to monitor its health and performance.                                                                                                             
+Task 4: Conduct Extensive Performance Testing                                  		   [20 Points]
+•	Re-test the application after implementing fixes to ensure stability.
+•	Verify that the application can handle a minimum of 5000 API calls to each endpoint without issues.
+Final Steps
+•	Once all tasks are successfully completed, execute the command ch-done. This will initiate the evaluation program and generate your final score.
+•	Hope this challenge has tested your ability to troubleshoot, deploy, and ensure the performance and reliability of applications within a Kubernetes environment. 
+
+Best of luck as you demonstrate your DevOps expertise!
+
+
