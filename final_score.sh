@@ -8,7 +8,7 @@ cip="0.0.0.0"
 #teams=(c1, c2, c3)
 #namespaces=("default")
 teams=("t1" "t2")
-namespaces=("default" "default")
+namespaces=("default" "mtvlabk8su1")
 userappurl=("mtvlabk8a1-app.brainupgrade.in")
 
 # Define the output CSV file
