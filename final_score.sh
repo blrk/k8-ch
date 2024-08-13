@@ -109,75 +109,114 @@ for ((i=0; i<${#teams[@]}; i++)); do
         # Append data rows to the CSV file
         echo "user-fox ingress,[FAIL],0" >> "$output_file"
     fi
-    echo "-----------------------------------------------------------"
-done
 
+    # Check concerto-deployment
+    dname=$(kubectl get deployment concerto-deployment -n "$ns" -o=jsonpath='{.metadata.name}')
+    dlabel=$(kubectl get deployment concerto-deployment -n "$ns" -o=jsonpath='{.spec.selector.matchLabels.app}')
+    dreplicas=$(kubectl get deployment concerto-deployment -n "$ns" -o=jsonpath='{.spec.replicas}')
+    dimage=$(kubectl get deployment concerto-deployment -n "$ns" -o=jsonpath='{.spec.template.spec.containers[0].image}')
+    dimpolicy=$(kubectl get deployment concerto-deployment -n "$ns" -o=jsonpath='{.spec.template.spec.containers[0].imagePullPolicy}')
+    dport=$(kubectl get deployment concerto-deployment -n "$ns" -o=jsonpath='{.spec.template.spec.containers[0].ports[0].containerPort}')
+    darep=$(kubectl get deployment concerto-deployment -n "$ns" -o=jsonpath='{.status.availableReplicas}')
 
-
-
-
-
-# Check concerto-deployment
-dname=$(kubectl get deployment concerto-deployment -n "$ns" -o=jsonpath='{.metadata.name}')
-dlabel=$(kubectl get deployment concerto-deployment -n "$ns" -o=jsonpath='{.spec.selector.matchLabels.app}')
-dreplicas=$(kubectl get deployment concerto-deployment -n "$ns" -o=jsonpath='{.spec.replicas}')
-dimage=$(kubectl get deployment concerto-deployment -n "$ns" -o=jsonpath='{.spec.template.spec.containers[0].image}')
-dimpolicy=$(kubectl get deployment concerto-deployment -n "$ns" -o=jsonpath='{.spec.template.spec.containers[0].imagePullPolicy}')
-dport=$(kubectl get deployment concerto-deployment -n "$ns" -o=jsonpath='{.spec.template.spec.containers[0].ports[0].containerPort}')
-darep=$(kubectl get deployment concerto-deployment -n "$ns" -o=jsonpath='{.status.availableReplicas}')
-
-if [ "$dname" = "concerto-deployment" ] && [ "$dlabel" = "concerto" ] && [ "$dreplicas" = "2" ] && [ "$dimage" = "blrk/concerto:1.0.0" ] && [ "$dimpolicy" = "Always" ] && [ "$dport" = "8080" ] && [ "$darep" = "2" ] && [ "$darep" = "2" ]; then
-    echo "concerto-deployment [PASS]"
-else
-    echo "concerto-deployment [FAIL]"    
-fi
-
-# score Health Check Endpoints
-lpurl=$(kubectl get deployment concerto-deployment -n "$ns" -o=jsonpath='{.spec.template.spec.containers[0].livenessProbe.httpGet.path}')
-lpport=$(kubectl get deployment concerto-deployment -n "$ns" -o=jsonpath='{.spec.template.spec.containers[0].livenessProbe.httpGet.port}')
-
-if [ "$lpurl" = "/concerto/health/liveness" ] && [ "$lpport" = "8080" ]; then
-    echo "concerto-deployment livenessProbe [PASS]"
-else
-    echo "concerto-deployment livenessProbe [FAIL]"
-fi
-
-rpurl=$(kubectl get deployment concerto-deployment -n "$ns" -o=jsonpath='{.spec.template.spec.containers[0].readinessProbe.httpGet.path}')
-rpport=$(kubectl get deployment concerto-deployment -n "$ns" -o=jsonpath='{.spec.template.spec.containers[0].readinessProbe.httpGet.port}')
-
-if [ "$rpurl" = "/concerto/health/readiness" ] && [ "$lpport" = "8080" ]; then
-    echo "concerto-deployment readinessProbe [PASS]"
-else
-    echo "concerto-deployment readinessProbe [FAIL]"
-fi
-
-# investigate-create-transaction call
-echo "Making create request .....5000 "
-for ((i=1; i<=5000; i++)); do
-    #echo "Making request $i..."
-    make_curl_request
-    if [ "$ctstatus" -eq 1 ]; then
-      echo "concerto-deployment create transaction [FAIL]"
-      break
+    if [ "$dname" = "concerto-deployment" ] && [ "$dlabel" = "concerto" ] && [ "$dreplicas" = "2" ] && [ "$dimage" = "blrk/concerto:1.0.0" ] && [ "$dimpolicy" = "Always" ] && [ "$dport" = "8080" ] && [ "$darep" = "2" ] && [ "$darep" = "2" ]; then
+        echo "concerto-deployment [PASS]"
+        # Append data rows to the CSV file
+        echo "concerto-deployment,[PASS],20" >> "$output_file"
+    else
+        echo "concerto-deployment [FAIL]"    
+        # Append data rows to the CSV file
+        echo "concerto-deployment,[FAIL],0" >> "$output_file"
     fi
+
+    # score Health Check Endpoints
+    lpurl=$(kubectl get deployment concerto-deployment -n "$ns" -o=jsonpath='{.spec.template.spec.containers[0].livenessProbe.httpGet.path}')
+    lpport=$(kubectl get deployment concerto-deployment -n "$ns" -o=jsonpath='{.spec.template.spec.containers[0].livenessProbe.httpGet.port}')
+
+    if [ "$lpurl" = "/concerto/health/liveness" ] && [ "$lpport" = "8080" ]; then
+        echo "concerto-deployment livenessProbe [PASS]"
+        # Append data rows to the CSV file
+        echo "concerto-deployment livenessProbe,[PASS],5" >> "$output_file"
+    else
+        echo "concerto-deployment livenessProbe [FAIL]"
+        # Append data rows to the CSV file
+        echo "concerto-deployment livenessProbe,[FAIL],0" >> "$output_file"
+    fi
+
+    rpurl=$(kubectl get deployment concerto-deployment -n "$ns" -o=jsonpath='{.spec.template.spec.containers[0].readinessProbe.httpGet.path}')
+    rpport=$(kubectl get deployment concerto-deployment -n "$ns" -o=jsonpath='{.spec.template.spec.containers[0].readinessProbe.httpGet.port}')
+
+    if [ "$rpurl" = "/concerto/health/readiness" ] && [ "$lpport" = "8080" ]; then
+        echo "concerto-deployment readinessProbe [PASS]"
+        # Append data rows to the CSV file
+        echo "concerto-deployment readinessProbe,[PASS],5" >> "$output_file"
+    else
+        echo "concerto-deployment readinessProbe [FAIL]"
+        # Append data rows to the CSV file
+        echo "concerto-deployment readinessProbe,[FAIL],0" >> "$output_file"
+    fi
+
+    # investigate-create-transaction call
+    echo "Making create request .....5000 "
+    for ((i=1; i<=5000; i++)); do
+        #echo "Making request $i..."
+        make_curl_request
+        if [ "$ctstatus" -eq 1 ]; then
+            echo "concerto-deployment create transaction [FAIL]"
+            # Append data rows to the CSV file
+            echo "concerto-deployment create transaction,[FAIL],0" >> "$output_file"
+            # Append data rows to the CSV file
+            echo "Investigate create transaction,[FAIL],0" >> "$output_file"
+            break
+        fi
+    done
+
+    if [ "$ctstatus" -eq 0 ]; then
+        echo "concerto-deployment create transaction [PASS]"
+        # Append data rows to the CSV file
+        echo "concerto-deployment create transaction,[PASS],10" >> "$output_file"
+        # Append data rows to the CSV file
+        echo "Investigate create transaction,[PASS],10" >> "$output_file"
+    fi
+
+    # investigate-get-transaction
+    echo "Making get request .....5000 "
+
+    for i in {1..5000}; do
+        curl -i -L -X POST "http://$cip:8080/concerto/api/transaction/checkout/3935eb5a-bc0e-4878-b0a5-0c4cc12f2da3" > /dev/null 2>&1
+    done
+
+    p1_re_count=$(kubectl get pods -l app=concerto -n "$ns" -o jsonpath='{range .items[*]}{.metadata.name}{"\t"}{.status.containerStatuses[*].restartCount}{"\n"}{end}' | head -n 1 | cut -f 2)
+    p2_re_count=$(kubectl get pods -l app=concerto -n "$ns" -o jsonpath='{range .items[*]}{.metadata.name}{"\t"}{.status.containerStatuses[*].restartCount}{"\n"}{end}' | tail -n 1 | cut -f 2)
+
+    if [ "$p1_re_count" -gt 0 ] && [ "$p2_re_count" -gt 0 ]; then
+        echo "concerto-deployment get transaction [PASS]"
+        # Append data rows to the CSV file
+        echo "concerto-deployment get transaction,[PASS],10" >> "$output_file"
+        # Append data rows to the CSV file
+        echo "Investigate get transaction,[PASS],10" >> "$output_file"
+    else
+        echo "concerto-deployment get transaction [FAIL]"
+        # Append data rows to the CSV file
+        echo "concerto-deployment get transaction,[FAIL],0" >> "$output_file"
+        # Append data rows to the CSV file
+        echo "Investigate get transaction,[FAIL],0" >> "$output_file"
+    fi
+    echo "-----------------------------------------------------------"
+    # Reset global var
+    ctstatus=0
+    gtstatus=0
+    cip="0.0.0.0"
 done
 
-if [ "$ctstatus" -eq 0 ]; then
-  echo "concerto-deployment create transaction [PASS]"
-fi
 
-# investigate-get-transaction
-echo "Making get request .....5000 "
 
-for i in {1..5000}; do
-  curl -i -L -X POST "http://$cip:8080/concerto/api/transaction/checkout/3935eb5a-bc0e-4878-b0a5-0c4cc12f2da3" > /dev/null 2>&1
-done
 
-p1_re_count=$(kubectl get pods -l app=concerto -n "$ns" -o jsonpath='{range .items[*]}{.metadata.name}{"\t"}{.status.containerStatuses[*].restartCount}{"\n"}{end}' | head -n 1 | cut -f 2)
-p2_re_count=$(kubectl get pods -l app=concerto -n "$ns" -o jsonpath='{range .items[*]}{.metadata.name}{"\t"}{.status.containerStatuses[*].restartCount}{"\n"}{end}' | tail -n 1 | cut -f 2)
 
-if [ "$p1_re_count" -gt 0 ] && [ "$p2_re_count" -gt 0 ]; then
-    echo "concerto-deployment get transaction [PASS]"
-else
-    echo "concerto-deployment get transaction [FAIL]"
-fi
+
+
+
+
+
+
+
