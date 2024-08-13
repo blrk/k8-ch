@@ -2,9 +2,16 @@
 ctstatus=0
 gtstatus=0
 
+#define namespce 
+namespaces=("default")
+userappurl=("mtvlabk8a1-app.brainupgrade.in")
+
+#fetch inital values
+cip=$(kubectl get svc concerto-service -o=jsonpath='{.spec.clusterIP}')
+
 # investigate-create-transaction
 make_curl_request() {
-    response=$(curl -i -L 'http://localhost:8080/concerto/api/transaction/create' \
+    response=$(curl -i -L "http://$cip:8080/concerto/api/transaction/create" \
     -H 'Content-Type: application/json' \
     -H 'Accept: application/json' \
     -d '{
@@ -22,7 +29,7 @@ make_curl_request() {
 
 # investigate-get-transaction
 make_get_request() {
-    response=$(curl -i -L 'http://localhost:8080/concerto/api/transaction/info/6797eb48-f0cc-4679-8502-560acf09a163' \
+    response=$(curl -i -L "http://$cip:8080/concerto/api/transaction/info/6797eb48-f0cc-4679-8502-560acf09a163" \
     -H 'Accept: mapplication/json' 2>&1 | awk '/HTTP\/1.1/{print $2}')
 
     if [[ $response != 2* ]]; then
@@ -32,20 +39,17 @@ make_get_request() {
     fi
 }
 
-
-# Define the namespaces
-namespaces=("default")
-userappurl=("mtvlabk8a1-app.brainupgrade.in")
-
+# scoring webserver pod
 status=$(kubectl get pods mywebserver -n "$ns" -o=jsonpath='{.status.phase}')
 image=$(kubectl get pod mywebserver -o=jsonpath='{.spec.containers[*].image}')
 
 if [ "$status" = 'Running' ] && [ "$image" = 'nginx:1.26.1' ]; then
     echo "My webserver pod stats [PASS]"
 else
-    "My webserver pod stats [FAIL]"
+    echo "My webserver pod stats [FAIL]"
 fi
 
+#scoring investment-frondend
 count=$(kubectl get deployments/invest-frontend -n "$ns" -o=jsonpath='{.spec.replicas}')
 avail=$(kubectl get deployments/invest-frontend -n "$ns" -o=jsonpath='{.status.availableReplicas}')
 
@@ -56,8 +60,8 @@ else
 fi
 
 # Fetch the cluster IP and port of the service
-cluster_ip=$(kubectl get svc user-fox -o=jsonpath='{.spec.clusterIP}')
-service_port=$(kubectl get svc user-fox -o=jsonpath='{.spec.ports[0].port}')
+cluster_ip=$(kubectl get svc user-fox -n "$ns" -o=jsonpath='{.spec.clusterIP}')
+service_port=$(kubectl get svc user-fox -n "$ns" -o=jsonpath='{.spec.ports[0].port}')
 
 # Perform the curl request
 suserfox=$(curl -s http://$cluster_ip:$service_port)
@@ -72,8 +76,8 @@ else
     echo "user-fox svc [FAIL]"
 fi
 
-ingress_port=$(kubectl get ingress ingress -o=jsonpath='{.spec.rules[*].http.paths[*].backend.service.port.number}')
-ingress_svc=$(kubectl get ingress ingress -o=jsonpath='{.spec.rules[*].http.paths[*].backend.service.name}')
+ingress_port=$(kubectl get ingress ingress -n "$ns" -o=jsonpath='{.spec.rules[*].http.paths[*].backend.service.port.number}')
+ingress_svc=$(kubectl get ingress ingress -n "$ns" -o=jsonpath='{.spec.rules[*].http.paths[*].backend.service.name}')
 
 #check the svc and ingress mapping
 if [ "$ingress_port" = "$service_port" ] && [ "$ingress_svc" = "user-fox" ]; then
@@ -84,22 +88,23 @@ fi
 
 
 # Check concerto-deployment
-dname=$(kubectl get deployment concerto-deployment -o=jsonpath='{.metadata.name}')
-dlabel=$(kubectl get deployment concerto-deployment -o=jsonpath='{.spec.selector.matchLabels.app}')
-dreplicas=$(kubectl get deployment concerto-deployment -o=jsonpath='{.spec.replicas}')
-dimage=$(kubectl get deployment concerto-deployment -o=jsonpath='{.spec.template.spec.containers[0].image}')
-dimpolicy=$(kubectl get deployment concerto-deployment -o=jsonpath='{.spec.template.spec.containers[0].imagePullPolicy}')
-dport=$(kubectl get deployment concerto-deployment -o=jsonpath='{.spec.template.spec.containers[0].ports[0].containerPort}')
+dname=$(kubectl get deployment concerto-deployment -n "$ns" -o=jsonpath='{.metadata.name}')
+dlabel=$(kubectl get deployment concerto-deployment -n "$ns" -o=jsonpath='{.spec.selector.matchLabels.app}')
+dreplicas=$(kubectl get deployment concerto-deployment -n "$ns" -o=jsonpath='{.spec.replicas}')
+dimage=$(kubectl get deployment concerto-deployment -n "$ns" -o=jsonpath='{.spec.template.spec.containers[0].image}')
+dimpolicy=$(kubectl get deployment concerto-deployment -n "$ns" -o=jsonpath='{.spec.template.spec.containers[0].imagePullPolicy}')
+dport=$(kubectl get deployment concerto-deployment -n "$ns" -o=jsonpath='{.spec.template.spec.containers[0].ports[0].containerPort}')
+darep=$(kubectl get deployment concerto-deployment -n "$ns" -o=jsonpath='{.status.availableReplicas}')
 
-if [ "$dname" = "concerto-deployment" ] && [ "$dlabel" = "concerto" ] && [ "$dreplicas" = "2" ] && [ "$dimage" = "blrk/concerto:1.0.0" ] && [ "$dimpolicy" = "Always" ] && [ "$dport" = "8080" ]; then
+if [ "$dname" = "concerto-deployment" ] && [ "$dlabel" = "concerto" ] && [ "$dreplicas" = "2" ] && [ "$dimage" = "blrk/concerto:1.0.0" ] && [ "$dimpolicy" = "Always" ] && [ "$dport" = "8080" ] && [ "$darep" = "2" ] && [ "$darep" = "2" ]; then
     echo "concerto-deployment [PASS]"
 else
-    echo "concerto-deployment [FAIL]"
+    echo "concerto-deployment [FAIL]"    
 fi
 
 # score Health Check Endpoints
-lpurl=$(kubectl get deployment concerto-deployment -o=jsonpath='{.spec.template.spec.containers[0].livenessProbe.httpGet.path}')
-lpport=$(kubectl get deployment concerto-deployment -o=jsonpath='{.spec.template.spec.containers[0].livenessProbe.httpGet.port}')
+lpurl=$(kubectl get deployment concerto-deployment -n "$ns" -o=jsonpath='{.spec.template.spec.containers[0].livenessProbe.httpGet.path}')
+lpport=$(kubectl get deployment concerto-deployment -n "$ns" -o=jsonpath='{.spec.template.spec.containers[0].livenessProbe.httpGet.port}')
 
 if [ "$lpurl" = "/concerto/health/liveness" ] && [ "$lpport" = "8080" ]; then
     echo "concerto-deployment livenessProbe [PASS]"
@@ -107,8 +112,8 @@ else
     echo "concerto-deployment livenessProbe [FAIL]"
 fi
 
-rpurl=$(kubectl get deployment concerto-deployment -o=jsonpath='{.spec.template.spec.containers[0].readinessProbe.httpGet.path}')
-rpport=$(kubectl get deployment concerto-deployment -o=jsonpath='{.spec.template.spec.containers[0].readinessProbe.httpGet.port}')
+rpurl=$(kubectl get deployment concerto-deployment -n "$ns" -o=jsonpath='{.spec.template.spec.containers[0].readinessProbe.httpGet.path}')
+rpport=$(kubectl get deployment concerto-deployment -n "$ns" -o=jsonpath='{.spec.template.spec.containers[0].readinessProbe.httpGet.port}')
 
 if [ "$rpurl" = "/concerto/health/readiness" ] && [ "$lpport" = "8080" ]; then
     echo "concerto-deployment readinessProbe [PASS]"
@@ -117,6 +122,7 @@ else
 fi
 
 # investigate-create-transaction call
+
 for ((i=1; i<=5000; i++)); do
     #echo "Making request $i..."
     make_curl_request
