@@ -1,3 +1,4 @@
+#!/bin/bash
 # global var
 ctstatus=0
 gtstatus=0
@@ -158,7 +159,8 @@ for ((i=0; i<${#teams[@]}; i++)); do
 
     # investigate-create-transaction call
     echo "Making create request .....5000 "
-    for ((i=1; i<=5000; i++)); do
+    #for ((i=1; i<=5000; i++)); do
+    for j in {1..5000}; do
         #echo "Making request $i..."
         make_curl_request
         if [ "$ctstatus" -eq 1 ]; then
@@ -182,7 +184,7 @@ for ((i=0; i<${#teams[@]}; i++)); do
     # investigate-get-transaction
     echo "Making get request .....5000 "
 
-    for i in {1..5000}; do
+    for k in {1..5000}; do
         curl -i -L -X POST "http://$cip:8080/concerto/api/transaction/checkout/3935eb5a-bc0e-4878-b0a5-0c4cc12f2da3" > /dev/null 2>&1
     done
 
