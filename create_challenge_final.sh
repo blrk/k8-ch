@@ -52,6 +52,7 @@ done
 echo "Pods and their namespaces:"
 for ns in "${namespaces[@]}"; do
   kubectl get pods -n "$ns" -o custom-columns=NAME:.metadata.name,NAMESPACE:.metadata.namespace
+  echo "---------------------------------------------------------------------------------------"
 done
 
  
