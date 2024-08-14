@@ -1,6 +1,10 @@
 User-manual
+=====================================================================================================
+https://kubernetes.io/docs/concepts/workloads/pods/
 https://kubernetes.io/docs/concepts/workloads/controllers/deployment/
-https://kubernetes.io/docs/tasks/access-application-cluster/create-external-load-balancer/
+https://kubernetes.io/docs/concepts/services-networking/service/
+https://kubernetes.io/docs/concepts/services-networking/ingress/
+https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
 https://curl.se/docs/manpage.html
 
 ==================================
