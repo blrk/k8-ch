@@ -7,7 +7,7 @@ import getpass
 output_files = ["t1.csv", "t2.csv"]
 
 # Directory path to be added
-directory_path = "~/"
+directory_path = "/root/"
 
 # Iterate through the list and modify each item
 for i in range(len(output_files)):
