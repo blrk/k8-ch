@@ -50,7 +50,7 @@ for ((i=0; i<${#teams[@]}; i++)); do
 
     # scoring webserver pod
     status=$(kubectl get pods mywebserver -n "$ns" -o=jsonpath='{.status.phase}')
-    image=$(kubectl get pod mywebserver -o=jsonpath='{.spec.containers[*].image}')
+    image=$(kubectl get pod mywebserver -n "$ns" -o=jsonpath='{.spec.containers[*].image}')
 
     if [ "$status" = 'Running' ] && [ "$image" = 'nginx:1.26.1' ]; then
         echo "My webserver pod stats [PASS]"
