@@ -13,7 +13,8 @@ namespaces=("mtvlabk8su1" "mtvlabk8su2" "mtvlabk8su3" "mtvlabk8su4" "mtvlabk8su5
 userappurl=("mtvlabk8a1-app.brainupgrade.in")
 
 # Define the output CSV file
-output_files=("t1.csv" "t2.csv")
+#output_files=("t1.csv" "t2.csv" "t3.csv" "t4.csv" "t5.csv" "t6.csv" "t7.csv" "t8.csv" "t9.csv" "t10.csv" "t11.csv" "t12.csv" "t13.csv" "t14.csv" "t15.csv" "t16.csv" "t17.csv" "t18.csv" "t19.csv" "t20.csv")
+output_files=("t1.csv" "t2.csv" "t3.csv" "t4.csv" "t5.csv")
 
 # investigate-create-transaction
 make_curl_request() {

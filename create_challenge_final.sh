@@ -46,7 +46,7 @@ for ns in "${namespaces[@]}"; do
     kubectl apply -f userfox-service.yml -n "$ns"
   done
   # Create user manual
-  cp ./User_manual-1.txt "$home_path"  
+  #cp ./User_manual-1.txt "$home_path"  
 done
 
 # Get and print the names of the pods and their namespaces
