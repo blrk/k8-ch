@@ -5,11 +5,11 @@ gtstatus=0
 cip="0.0.0.0"
 
 #define namespce 
-# namespaces=("mtvlabk8su1", "mtvlabk8su2", "mtvlabk8su3", "mtvlabk8su4", "mtvlabk8su5", "mtvlabk8su6", "mtvlabk8su7", "mtvlabk8su8", "mtvlabk8su9", "mtvlabk8su10", "mtvlabk8su11", "mtvlabk8su12", "mtvlabk8su13", "mtvlabk8su14", "mtvlabk8su15", "mtvlabk8su16", "mtvlabk8su17", "mtvlabk8su18", "mtvlabk8su19", "mtvlabk8su20", "mtvlabk8su21", "mtvlabk8su22", "mtvlabk8su23", "mtvlabk8su24", "mtvlabk8su25")
-#teams=(c1, c2, c3)
+#namespaces=("mtvlabk8su1" "mtvlabk8su2" "mtvlabk8su3" "mtvlabk8su4" "mtvlabk8su5" "mtvlabk8su6" "mtvlabk8su7" "mtvlabk8su8" "mtvlabk8su9" "mtvlabk8su10" "mtvlabk8su11" "mtvlabk8su12" "mtvlabk8su13" "mtvlabk8su14" "mtvlabk8su15" "mtvlabk8su16" "mtvlabk8su17" "mtvlabk8su18" "mtvlabk8su19" "mtvlabk8su20" "mtvlabk8sa1")
+#teams=("T1" "T2" "T3" "T4" "T5" "T6" "T7" "T8" "T9" "T10" "T11" "T12" "T13" "T14" "T15" "T16" "T17" "T18" "T19" "T20")
 #namespaces=("default")
-teams=("t1" "t2")
-namespaces=("default" "mtvlabk8su1")
+teams=("T1" "T2" "T3" "T4" "T5")
+namespaces=("mtvlabk8su1" "mtvlabk8su2" "mtvlabk8su3" "mtvlabk8su4" "mtvlabk8su5")
 userappurl=("mtvlabk8a1-app.brainupgrade.in")
 
 # Define the output CSV file
@@ -98,7 +98,7 @@ for ((i=0; i<${#teams[@]}; i++)); do
     fi
 
     ingress_port=$(kubectl get ingress ingress -n "$ns" -o=jsonpath='{.spec.rules[*].http.paths[*].backend.service.port.number}')
-    ingress_svc=$(kubectl get ingress ingress -n "$ns" -o=jsonpath='{.spec.rules[*].http.paths[*].backend.service.name}')
+    ingress_svc=$(kubectl get ingress -n "$ns" -o=jsonpath='{.spec.rules[*].http.paths[*].backend.service.name}')
 
     #check the svc and ingress mapping
     if [ "$ingress_port" = "$service_port" ] && [ "$ingress_svc" = "user-fox" ]; then

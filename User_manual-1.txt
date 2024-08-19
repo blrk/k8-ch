@@ -43,4 +43,9 @@ Valid data for create API call
 "93bd8f21-fec8-4ab2-9873-465e1f35862d"
 "49478d77-2dc4-4e0d-962a-2a2796dbdd14"
 ======================================
+=================
+Additional APIs
+=================
+/concerto/health/readiness
+/concerto/health/liveness
 
